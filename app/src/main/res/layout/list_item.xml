@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="attendanceRecord"
+            type="com.alexp.sheduler.presentation.AttendanceRecord" />
+    </data>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/item_background"
+    android:elevation="4dp">
+
+
+
+    <TextView
+        android:id="@+id/textDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@{attendanceRecord.date}"
+        android:textSize="16sp"
+        android:textColor="#333333"
+        android:fontFamily="sans-serif-medium" />
+
+    <TextView
+        android:id="@+id/textTimeIn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@{attendanceRecord.timeIn}"
+        android:textSize="16sp"
+        android:textColor="#666666"
+        android:fontFamily="sans-serif"
+        />
+
+    <TextView
+        android:id="@+id/textTimeOut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@{attendanceRecord.timeOut}"
+        android:textSize="16sp"
+        android:textColor="#666666"
+        android:fontFamily="sans-serif" />
+</LinearLayout>
+</layout>

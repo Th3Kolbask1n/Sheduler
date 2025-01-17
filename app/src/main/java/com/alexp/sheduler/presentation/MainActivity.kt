@@ -1,6 +1,7 @@
 package com.alexp.sheduler.presentation
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.alexp.sheduler.R
@@ -12,7 +13,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private lateinit var viewModel: AttendanceRecordViewModel
-
+    private lateinit var recordsAdapter : AttendanceRecordsAdapter
     val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
 
@@ -38,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         component.inject(this)
 
         setContentView(binding.root)
-
+        setupRecyclerView()
 
         binding.addAttendanceRecordButton.setOnClickListener {
             val intent = AttendanceRecordActivity.newIntentAdd(this)
@@ -47,7 +48,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewModel = ViewModelProvider(this,viewModelFactory)[AttendanceRecordViewModel::class.java]
+
+        viewModel.attendanceRecordList.observe(this){
+
+            recordsAdapter.submitList(it.toList())
+        }
+
     }
 
+    private fun setupRecyclerView()
+    {
+        with(binding.recyclerView)
+        {
+            recordsAdapter = AttendanceRecordsAdapter()
+            adapter = recordsAdapter
+
+
+        }
+
+    }
 
 }

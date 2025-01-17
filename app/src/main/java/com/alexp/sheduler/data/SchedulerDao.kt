@@ -5,10 +5,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.alexp.sheduler.data.AttendanceRecordDbModel
 
 @Dao
-interface SchedulerRepositoryDao {
+interface SchedulerDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addAttendanceRecord(attendanceRecordDbModel: AttendanceRecordDbModel)

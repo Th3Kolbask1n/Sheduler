@@ -7,8 +7,8 @@ import com.alexp.sheduler.domain.SchedulerRepository
 import javax.inject.Inject
 
 class SchedulerRepositoryImpl @Inject constructor(
-  val attendanceRecordsMapper: AttendanceRecordsMapper,
-  val schedulerRepository: SchedulerRepositoryDao
+    private val attendanceRecordsMapper: AttendanceRecordsMapper,
+    private val schedulerRepository: SchedulerDao
 
 ):  SchedulerRepository {
     override suspend fun addAttendanceRecord(attendanceRecord: AttendanceRecord) {

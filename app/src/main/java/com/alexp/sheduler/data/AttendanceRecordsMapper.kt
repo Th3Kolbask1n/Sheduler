@@ -7,7 +7,6 @@ class AttendanceRecordsMapper @Inject constructor() {
 
     fun mapEntityToDbModel(attendanceRecord: AttendanceRecord) =
         AttendanceRecordDbModel(
-            name = attendanceRecord.name,
             timeIn = attendanceRecord.timeIn,
             timeOut = attendanceRecord.timeOut,
             date = attendanceRecord.date,
@@ -18,7 +17,6 @@ class AttendanceRecordsMapper @Inject constructor() {
     fun mapDbModelToEntity(attendanceRecordDbModel: AttendanceRecordDbModel) =
         AttendanceRecord(
             id = attendanceRecordDbModel.id,
-            name = attendanceRecordDbModel.name,
             timeOut = attendanceRecordDbModel.timeOut,
             timeIn = attendanceRecordDbModel.timeIn,
             date = attendanceRecordDbModel.date

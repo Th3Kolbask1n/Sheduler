@@ -10,7 +10,7 @@ import androidx.room.RoomDatabase
 
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun schedulerDao() : SchedulerRepositoryDao
+    abstract fun schedulerDao() : SchedulerDao
 
     companion object {
         private var INSTANCE : AppDatabase? = null

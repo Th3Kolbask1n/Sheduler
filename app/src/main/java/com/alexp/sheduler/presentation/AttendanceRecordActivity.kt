@@ -6,7 +6,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.alexp.sheduler.R
 
-class AttendanceRecordActivity : AppCompatActivity() {
+class AttendanceRecordActivity : AppCompatActivity(), AttendanceRecordFragment.OnEditingFinishedListener {
     private var screenMode = MODE_UNKNOWN
     private var attendanceRecordId = AttendanceRecord.UNDEFINDED_ID
 
@@ -27,6 +27,12 @@ class AttendanceRecordActivity : AppCompatActivity() {
             .replace(R.id.attendance_record_container,fragment)
             .commit()
     }
+
+    override fun onEditingFinished() {
+        finish()
+    }
+
+
     companion object {
 
 

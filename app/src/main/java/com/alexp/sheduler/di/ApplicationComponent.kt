@@ -12,7 +12,9 @@ import dagger.Component
 
 @ApplicationScope
 @Component(
-    modules = [ViewModelModule::class]
+    modules = [
+        DataModule::class,
+        ViewModelModule::class]
 )
 
 

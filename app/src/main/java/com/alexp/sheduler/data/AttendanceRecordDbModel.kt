@@ -6,9 +6,8 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "attendance_records")
 class AttendanceRecordDbModel
     (
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id: Int,
-    val name: String,
     val timeIn: String,
     val timeOut: String,
     val date : String

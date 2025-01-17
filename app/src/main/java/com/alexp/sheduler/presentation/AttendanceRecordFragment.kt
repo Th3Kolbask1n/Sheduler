@@ -1,30 +1,55 @@
 package com.alexp.sheduler.presentation
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import androidx.fragment.app.viewModels
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.alexp.sheduler.R
 import com.alexp.sheduler.databinding.FragmentAttendanceRecordBinding
 import java.util.Calendar
+import javax.inject.Inject
 import kotlin.jvm.Throws
 
 class AttendanceRecordFragment : Fragment() {
 
+    private lateinit var onEditingFinishedListener: OnEditingFinishedListener
 
-    private var _binding : FragmentAttendanceRecordBinding? = null
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    private val component by lazy {
+        (requireActivity().application as AttendanceApplication).component
+    }
+
+    private var _binding: FragmentAttendanceRecordBinding? = null
     private val binding
-        get() = _binding?: throw RuntimeException("FragmentRecord is null")
+        get() = _binding ?: throw RuntimeException("FragmentRecord is null")
 
     private var isTimePickerShown = false
 
-    private val viewModel: AttendanceRecordViewModel by viewModels()
+    private lateinit var viewModel: AttendanceRecordViewModel
+
+    override fun onAttach(context: Context) {
+
+        component.inject(this)
+        super.onAttach(context)
+
+        if (context is OnEditingFinishedListener) {
+            onEditingFinishedListener = context
+        } else {
+            throw RuntimeException("Activity must implement OnEditingFinishedListener")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,36 +58,57 @@ class AttendanceRecordFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-    setListeners()
+
+
+        viewModel = ViewModelProvider(this, viewModelFactory)[AttendanceRecordViewModel::class.java]
+        binding.viewModel = viewModel
+        binding.lifecycleOwner = viewLifecycleOwner
+
+        setListeners()
+        observeViewModel()
     }
 
-    private fun setListeners()
-    {
+    private fun observeViewModel(){
+        viewModel.shouldCloseScreen.observe(viewLifecycleOwner)
+        {
+            onEditingFinishedListener.onEditingFinished()
+        }
+    }
+    private fun setListeners() {
         binding.editTextDate.setOnClickListener {
-            if(!isTimePickerShown)
-            getDateDialog(){
-                binding.editTextDate.setText(it)
-            }
+            if (!isTimePickerShown)
+                getDateDialog() {
+                    binding.editTextDate.setText(it)
+                }
         }
 
         binding.editTextCheckInTime.setOnClickListener {
-            if(!isTimePickerShown)
+            if (!isTimePickerShown)
 
-            getTimeDialog{
-                binding.editTextCheckInTime.setText(it)
-            }
+                getTimeDialog {
+                    binding.editTextCheckInTime.setText(it)
+                }
         }
         binding.editTextCheckOutTime.setOnClickListener {
-            if(!isTimePickerShown)
+            if (!isTimePickerShown)
 
-            getTimeDialog {binding.editTextCheckOutTime.setText(it)}
+                getTimeDialog { binding.editTextCheckOutTime.setText(it) }
+        }
+        binding.btnSave.setOnClickListener {
+            Log.d("Kitty", binding.editTextDate.text.toString())
+
+
+            viewModel.addAttendanceRecord(
+                binding.editTextDate.text.toString(),
+                binding.editTextCheckInTime.text.toString(),
+                binding.editTextCheckOutTime.text.toString()
+            )
         }
     }
 
 
-    private fun getDateDialog(onDateSet: (String) -> Unit)
-    {
-        if(isTimePickerShown) return
+    private fun getDateDialog(onDateSet: (String) -> Unit) {
+        if (isTimePickerShown) return
 
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
@@ -90,9 +136,8 @@ class AttendanceRecordFragment : Fragment() {
 
     }
 
-    private fun getTimeDialog(onTimeSet: (String) -> Unit)
-    {
-        if(isTimePickerShown) return
+    private fun getTimeDialog(onTimeSet: (String) -> Unit) {
+        if (isTimePickerShown) return
 
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -120,14 +165,19 @@ class AttendanceRecordFragment : Fragment() {
 
 
     }
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    interface OnEditingFinishedListener {
 
-        _binding = FragmentAttendanceRecordBinding.inflate(inflater,container,false)
-        return binding.root
+        fun onEditingFinished()
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
+        _binding = FragmentAttendanceRecordBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
 
     companion object {
@@ -141,21 +191,19 @@ class AttendanceRecordFragment : Fragment() {
         private const val MODE_UNKNOW = ""
 
 
-        fun newIntentAdd(context: Context) : AttendanceRecordFragment
-        {
+        fun newIntentAdd(context: Context): AttendanceRecordFragment {
             return AttendanceRecordFragment().apply {
                 arguments = Bundle().apply {
-                    putString(EXTRA_SCREEN_MODE, MODE_EDIT)
+                    putString(EXTRA_SCREEN_MODE, MODE_ADD)
                 }
             }
         }
 
-        fun newIntentEdit(context: Context, recordId: Int) : AttendanceRecordFragment
-        {
+        fun newIntentEdit(context: Context, recordId: Int): AttendanceRecordFragment {
             return AttendanceRecordFragment().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_SCREEN_MODE, MODE_EDIT)
-                    putInt(EXTRA_RECORD_ID,recordId)
+                    putInt(EXTRA_RECORD_ID, recordId)
                 }
             }
         }

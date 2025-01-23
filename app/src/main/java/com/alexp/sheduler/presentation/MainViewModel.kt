@@ -9,6 +9,7 @@ import com.alexp.sheduler.domain.EditRecordUseCase
 import com.alexp.sheduler.domain.GetRecordUseCase
 import com.alexp.sheduler.domain.GetRecordsByMonthUseCase
 import com.alexp.sheduler.domain.GetRecordsUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,9 +38,9 @@ class MainViewModel  @Inject constructor(
     private val _currentYear = MutableStateFlow("")
     val currentYear: StateFlow<String> = _currentYear
 
-    private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale("ru", "RU"))
 
-
+    private var loadJob: Job? = null
 
     init {
         updateMonthYear()
@@ -59,40 +60,45 @@ class MainViewModel  @Inject constructor(
     }
 
     private fun updateMonthYear() {
-        val monthYear = dateFormat.format(calendar.time)
-        val (month, year) = monthYear.split(" ")
+        val monthNames = arrayOf(
+            "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+            "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+        )
+        val currentMonthIndex = calendar.get(Calendar.MONTH)
+        val month = monthNames[currentMonthIndex]
+        val year = calendar.get(Calendar.YEAR).toString()
+
         _currentMonth.value = month
         _currentYear.value = year
-        loadRecords(getMonthNumber(month),year)
+        loadRecords((currentMonthIndex + 1).toString().padStart(2, '0'), year)
     }
 
     private fun loadRecords(month: String, year: String)
     {
 
-        viewModelScope.launch {
-            getRecordsByMonthUseCase.getAttendanceRecordListByMonth(month,year)
-                .collect{
-                    recordList ->
+        loadJob?.cancel() // Отменяем предыдущий запрос, если он еще выполняется
+        loadJob = viewModelScope.launch {
+            getRecordsByMonthUseCase.getAttendanceRecordListByMonth(month, year)
+                .collect { recordList ->
                     _recordList.value = recordList
-
                 }
         }
     }
 
     private fun getMonthNumber(month: String): String {
         val monthMap = mapOf(
-            "January" to "01",
-            "February" to "02",
-            "March" to "03",
-            "April" to "04",
-            "May" to "05",
-            "June" to "06",
-            "July" to "07",
-            "August" to "08",
-            "September" to "09",
-            "October" to "10",
-            "November" to "11",
-            "December" to "12"
+            "Январь" to "01",
+            "Февраль" to "02",
+            "Март" to "03",
+            "Апрель" to "04",
+            "Май" to "05",
+            "Июнь" to "06",
+            "Июль" to "07",
+            "Август" to "08",
+            "Сентябрь" to "09",
+            "Октябрь" to "10",
+            "Ноябрь" to "11",
+            "Декабрь" to "12"
         )
         return monthMap[month] ?: "01"
     }

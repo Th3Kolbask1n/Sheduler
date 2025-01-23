@@ -3,6 +3,8 @@ package com.alexp.sheduler.presentation
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.alexp.sheduler.R
 
@@ -15,20 +17,52 @@ class AttendanceRecordActivity : AppCompatActivity(), AttendanceRecordFragment.O
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_atten_dance_record)
 
-
+    parseIntent()
         launchRightMode()
     }
 
     fun launchRightMode()
     {
-        val fragment = AttendanceRecordFragment.newIntentAdd(this)
+
+        val fragment =
+            when(screenMode){
+                MODE_ADD -> AttendanceRecordFragment.newIntentAdd()
+                MODE_EDIT -> AttendanceRecordFragment.newIntentEdit(attendanceRecordId)
+                else->
+                    throw RuntimeException("Unknown mode")
+            }
+
+            AttendanceRecordFragment.newIntentAdd()
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.attendance_record_container,fragment)
             .commit()
     }
 
+    private fun parseIntent()
+    {
+        if(!intent.hasExtra(EXTRA_SCREEN_MODE))
+        {
+            throw RuntimeException("Param screen mode absent")
+        }
+        val mode = intent.getStringExtra(EXTRA_SCREEN_MODE)
+        if(mode!= MODE_EDIT && mode!= MODE_ADD)
+            throw RuntimeException("Unknown screen mode $mode")
+
+        screenMode = mode
+        if(screenMode == MODE_EDIT)
+        {
+            if(!intent.hasExtra(EXTRA_RECORD_ID))
+                throw RuntimeException("Param shop item id absent")
+
+            attendanceRecordId = intent.getIntExtra(EXTRA_RECORD_ID, AttendanceRecord.UNDEFINDED_ID)
+        }
+
+
+
+    }
     override fun onEditingFinished() {
+        Toast.makeText(this,"Успешно",Toast.LENGTH_SHORT).show()
         finish()
     }
 
@@ -53,6 +87,7 @@ class AttendanceRecordActivity : AppCompatActivity(), AttendanceRecordFragment.O
 
         fun newIntentEdit(context: Context, recordId: Int) : Intent
         {
+
             val intent = Intent(context, AttendanceRecordActivity::class.java)
             intent.putExtra(EXTRA_SCREEN_MODE,MODE_EDIT)
             intent.putExtra(EXTRA_RECORD_ID, recordId)

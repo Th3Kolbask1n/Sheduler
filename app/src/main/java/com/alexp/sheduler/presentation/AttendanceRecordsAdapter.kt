@@ -10,16 +10,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.alexp.sheduler.R
 import com.alexp.sheduler.databinding.ListItemBinding
 
-class AttendanceRecordsAdapter : ListAdapter<AttendanceRecord, AttendanceRecordsAdapterViewHolder>(AttendanceRecordDiffCallback())
-{
+class AttendanceRecordsAdapter :
+    ListAdapter<AttendanceRecord, AttendanceRecordsAdapterViewHolder>(AttendanceRecordDiffCallback()) {
 
 
+    var onAttendanceRecordClickListener: ((AttendanceRecord) -> Unit)? = null
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): AttendanceRecordsAdapterViewHolder {
-        Log.d("KMVV", "223")
 
 
         val binding = DataBindingUtil.inflate<ViewDataBinding>(
@@ -35,9 +35,11 @@ class AttendanceRecordsAdapter : ListAdapter<AttendanceRecord, AttendanceRecords
 
     override fun onBindViewHolder(holder: AttendanceRecordsAdapterViewHolder, position: Int) {
 
-            val attendanceRecord = getItem(position)
-            val binding = holder.binding
-
+        val attendanceRecord = getItem(position)
+        val binding = holder.binding
+        binding.root.setOnClickListener {
+            onAttendanceRecordClickListener?.invoke(attendanceRecord)
+        }
         if (binding is ListItemBinding) {
             binding.attendanceRecord = attendanceRecord
         }

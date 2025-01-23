@@ -1,18 +1,28 @@
 package com.alexp.sheduler.presentation
 
+import android.icu.util.Calendar
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.alexp.sheduler.R
 import com.alexp.sheduler.databinding.ActivityMainBinding
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 
 class MainActivity : AppCompatActivity() {
 
 
-    private lateinit var viewModel: AttendanceRecordViewModel
+    private lateinit var viewModel: MainViewModel
     private lateinit var recordsAdapter : AttendanceRecordsAdapter
     val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
@@ -25,13 +35,7 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
-
-
-
-//    private fun isOnsePaneMode() : Boolean
-//    {
-//        return binding.c
-//    }
+    private val dateFormat = SimpleDateFormat("LLLL yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(binding.root)
         setupRecyclerView()
+        setupClickListener()
 
         binding.addAttendanceRecordButton.setOnClickListener {
             val intent = AttendanceRecordActivity.newIntentAdd(this)
@@ -47,13 +52,42 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        viewModel = ViewModelProvider(this,viewModelFactory)[AttendanceRecordViewModel::class.java]
+        binding.buttonNextMonth.setOnClickListener {
 
-        viewModel.attendanceRecordList.observe(this){
-
-            recordsAdapter.submitList(it.toList())
+            lifecycleScope.launch {
+                viewModel.changeMonth(1)
+            }
         }
 
+        binding.buttonPreviousMonth.setOnClickListener {
+
+            lifecycleScope.launch {
+                viewModel.changeMonth(-1)
+            }
+        }
+        viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.recordList.collect {
+
+                    recordsAdapter.submitList(it)
+                }
+            }
+
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                viewModel.currentMonth.collect {month ->
+                    val year = viewModel.currentYear.value
+                    binding.textCurrentMonth.text = "$month $year"
+
+                }
+            }
+
+        }
     }
 
     private fun setupRecyclerView()
@@ -62,10 +96,43 @@ class MainActivity : AppCompatActivity() {
         {
             recordsAdapter = AttendanceRecordsAdapter()
             adapter = recordsAdapter
+        }
+        setupSwipeListeners(binding.recyclerView)
+
+    }
+
+    private fun setupSwipeListeners(rvRecordList:RecyclerView?)
+    {
+        val callback = object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val record = recordsAdapter.currentList[viewHolder.adapterPosition]
+                viewModel.deleteAttendanceRecord(record)
+            }
 
 
         }
+        val itemTouchHelper = ItemTouchHelper(callback)
+        itemTouchHelper.attachToRecyclerView(rvRecordList)
+    }
+    private fun setupClickListener() {
 
+        recordsAdapter.onAttendanceRecordClickListener = {
+
+            val intent = AttendanceRecordActivity.newIntentEdit(this,it.id)
+                startActivity(intent)
+
+        }
     }
 
 }

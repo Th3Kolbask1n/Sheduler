@@ -1,5 +1,6 @@
 package com.alexp.sheduler.presentation
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -16,7 +17,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.alexp.sheduler.R
 import com.alexp.sheduler.databinding.FragmentAttendanceRecordBinding
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.jvm.Throws
 
@@ -39,6 +42,9 @@ class AttendanceRecordFragment : Fragment() {
 
     private lateinit var viewModel: AttendanceRecordViewModel
 
+
+    private var attendanceRecordId = AttendanceRecord.UNDEFINDED_ID
+    private var screenMode = MODE_UNKNOW
     override fun onAttach(context: Context) {
 
         component.inject(this)
@@ -53,7 +59,71 @@ class AttendanceRecordFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        parseParams()
+    }
+    private fun launchRightMode()
+    {
+        when(screenMode)
+        {
+            MODE_ADD -> launchAddMode()
+            MODE_EDIT -> launchEditMode()
+        }
+    }
+    private fun launchAddMode()
+    {
 
+        viewModel.currentDate.observe(viewLifecycleOwner) { date ->
+            binding.editTextDate.setText(date)
+        }
+        viewModel.currentTime.observe(viewLifecycleOwner) { time ->
+            binding.editTextCheckInTime.setText(time)
+            binding.editTextCheckOutTime.setText(time)
+        }
+
+        binding.editTextDate.setOnClickListener {
+            getDateDialog { selectedDate ->
+                binding.editTextDate.setText(selectedDate)
+            }
+        }
+
+        binding.editTextCheckInTime.setOnClickListener {
+            getTimeDialog { selectedTime ->
+                binding.editTextCheckInTime.setText(selectedTime)
+            }
+        }
+
+        binding.editTextCheckOutTime.setOnClickListener {
+            getTimeDialog { selectedTime ->
+                binding.editTextCheckOutTime.setText(selectedTime)
+            }
+        }
+        binding.btnSave.setOnClickListener {
+
+            viewModel.addAttendanceRecord(binding.editTextDate.text.toString(),
+                binding.editTextCheckInTime.text.toString(),
+                binding.editTextCheckOutTime.text.toString())
+        }
+    }
+
+    private fun launchEditMode()
+    {
+
+        viewModel.attendanceRecord.observe(viewLifecycleOwner) {
+            binding.editTextDate.setText(it.date)
+            binding.editTextCheckInTime.setText(it.timeIn)
+            binding.editTextCheckOutTime.setText(it.timeOut)
+        }
+
+        viewModel.getAttendanceRecord(attendanceRecordId)
+
+
+
+
+        binding.btnSave.setOnClickListener {
+            viewModel.editAttendanceRecord(binding.editTextDate.text.toString(),
+                binding.editTextCheckInTime.text.toString(),
+                binding.editTextCheckOutTime.text.toString())
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -65,6 +135,7 @@ class AttendanceRecordFragment : Fragment() {
         binding.lifecycleOwner = viewLifecycleOwner
 
         setListeners()
+        launchRightMode()
         observeViewModel()
     }
 
@@ -95,9 +166,6 @@ class AttendanceRecordFragment : Fragment() {
                 getTimeDialog { binding.editTextCheckOutTime.setText(it) }
         }
         binding.btnSave.setOnClickListener {
-            Log.d("Kitty", binding.editTextDate.text.toString())
-
-
             viewModel.addAttendanceRecord(
                 binding.editTextDate.text.toString(),
                 binding.editTextCheckInTime.text.toString(),
@@ -106,7 +174,33 @@ class AttendanceRecordFragment : Fragment() {
         }
     }
 
+    private fun  parseParams()
+    {
+        val args = requireArguments()
+        if(!args.containsKey(EXTRA_SCREEN_MODE))
+        {
+            throw RuntimeException("Param screen mode absent")
 
+
+        }
+        val mode = args.getString(EXTRA_SCREEN_MODE)
+
+        if(mode!= MODE_EDIT && mode!= MODE_ADD)
+            throw RuntimeException("Unknown screen mode $mode")
+
+        screenMode = mode
+
+        if(screenMode == MODE_EDIT)
+        {
+            if(!args.containsKey(EXTRA_RECORD_ID))
+                throw RuntimeException("Param shop item id absent")
+
+
+            attendanceRecordId = args.getInt(EXTRA_RECORD_ID, AttendanceRecord.UNDEFINDED_ID)
+
+        }
+
+    }
     private fun getDateDialog(onDateSet: (String) -> Unit) {
         if (isTimePickerShown) return
 
@@ -117,7 +211,7 @@ class AttendanceRecordFragment : Fragment() {
         val datePickerDialog = DatePickerDialog(
             requireContext(),
             { _, selectedYear, selectedMonth, selectedDay ->
-                val date = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+                val date = String.format("%02d-%02d-%02d", selectedDay, selectedMonth + 1, selectedYear)
                 onDateSet(date)
             },
             year,
@@ -191,7 +285,7 @@ class AttendanceRecordFragment : Fragment() {
         private const val MODE_UNKNOW = ""
 
 
-        fun newIntentAdd(context: Context): AttendanceRecordFragment {
+        fun newIntentAdd(): AttendanceRecordFragment {
             return AttendanceRecordFragment().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_SCREEN_MODE, MODE_ADD)
@@ -199,7 +293,8 @@ class AttendanceRecordFragment : Fragment() {
             }
         }
 
-        fun newIntentEdit(context: Context, recordId: Int): AttendanceRecordFragment {
+        fun newIntentEdit(recordId: Int): AttendanceRecordFragment {
+
             return AttendanceRecordFragment().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_SCREEN_MODE, MODE_EDIT)

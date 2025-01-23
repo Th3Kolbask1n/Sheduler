@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
             name="attendanceRecord"
@@ -7,7 +8,6 @@
     </data>
 
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -26,7 +26,9 @@
         android:text="@{attendanceRecord.date}"
         android:textSize="16sp"
         android:textColor="#333333"
-        android:fontFamily="sans-serif-medium" />
+        android:fontFamily="sans-serif-medium"
+        android:layout_margin="7sp"
+        />
 
     <TextView
         android:id="@+id/textTimeIn"
@@ -36,15 +38,18 @@
         android:textSize="16sp"
         android:textColor="#666666"
         android:fontFamily="sans-serif"
+        android:layout_margin="7sp"
+
         />
 
     <TextView
         android:id="@+id/textTimeOut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="7sp"
+        android:fontFamily="sans-serif"
         android:text="@{attendanceRecord.timeOut}"
-        android:textSize="16sp"
         android:textColor="#666666"
-        android:fontFamily="sans-serif" />
+        android:textSize="16sp" />
 </LinearLayout>
 </layout>

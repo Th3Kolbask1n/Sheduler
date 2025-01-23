@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SchedulerDao {
@@ -18,10 +19,14 @@ interface SchedulerDao {
 
     @Query("SELECT * FROM attendance_records")
 
-    fun getAttendanceRecordList(): LiveData<List<AttendanceRecordDbModel>>
+    fun getAttendanceRecordList(): Flow<List<AttendanceRecordDbModel>>
 
-    @Query("SELECT * FROM attendance_records WHERE id +:attendanceRecordId LIMIT 1")
+    @Query("SELECT * FROM attendance_records WHERE id =:attendanceRecordId LIMIT 1")
     suspend fun getAttendanceRecord(attendanceRecordId: Int): AttendanceRecordDbModel
 
 
+    @Query("SELECT * FROM attendance_records " +
+            "WHERE strftime('%Y-%m', date) = :year || '-' || :month;")
+
+    fun getAttendanceRecordListByMonth(month: String, year: String): Flow<List<AttendanceRecordDbModel>>
 }

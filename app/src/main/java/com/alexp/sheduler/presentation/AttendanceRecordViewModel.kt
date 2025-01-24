@@ -15,6 +15,7 @@ import com.alexp.sheduler.domain.GetRecordsUseCase
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -50,8 +51,12 @@ class AttendanceRecordViewModel @Inject constructor(
     private val _currentDate = MutableLiveData<String>()
     val currentDate: LiveData<String> get() = _currentDate
 
-    private val _currentTime = MutableLiveData<String>()
-    val currentTime: LiveData<String> get() = _currentTime
+    private val _currentTimeIn = MutableLiveData<String>()
+    val currentTimeIn: LiveData<String> get() = _currentTimeIn
+
+
+    private val _currentTimeOut = MutableLiveData<String>()
+    val currentTimeOut: LiveData<String> get() = _currentTimeOut
 
     init {
         setCurrentDateTime()
@@ -60,20 +65,37 @@ class AttendanceRecordViewModel @Inject constructor(
 
     fun setCurrentDateTime() {
         val calendar = Calendar.getInstance()
-        val date = String.format(
+
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        val date = String.format(Locale.getDefault(),
             "%02d-%02d-%02d",
-            calendar.get(Calendar.DAY_OF_MONTH),
+            hour,
             calendar.get(Calendar.MONTH) + 1,
             calendar.get(Calendar.YEAR)
         )
-        val time = String.format(
+        val timeIn = String.format(Locale.getDefault(),
             "%02d:%02d",
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE)
+            hour,
+           minute
         )
 
+
+        var newHour = hour + 9
+        val newMinute = minute
+
+        if (newHour >= 24) {
+            newHour = 23
+        }
+
+        val timeOut = String.format(Locale.getDefault(),"%02d:%02d", newHour, if (newHour == 23) 59 else newMinute)
+
         _currentDate.value = date
-        _currentTime.value = time
+        _currentTimeIn.value = timeIn
+        _currentTimeOut.value = timeOut
+
+
     }
 
     fun getAttendanceRecord(recordId: Int) {

@@ -75,11 +75,12 @@ class AttendanceRecordFragment : Fragment() {
         viewModel.currentDate.observe(viewLifecycleOwner) { date ->
             binding.editTextDate.setText(date)
         }
-        viewModel.currentTime.observe(viewLifecycleOwner) { time ->
+        viewModel.currentTimeIn.observe(viewLifecycleOwner) { time ->
             binding.editTextCheckInTime.setText(time)
+        }
+        viewModel.currentTimeOut.observe(viewLifecycleOwner) { time ->
             binding.editTextCheckOutTime.setText(time)
         }
-
         binding.editTextDate.setOnClickListener {
             getDateDialog { selectedDate ->
                 binding.editTextDate.setText(selectedDate)

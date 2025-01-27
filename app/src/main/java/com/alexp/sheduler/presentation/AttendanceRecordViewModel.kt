@@ -66,7 +66,7 @@ class AttendanceRecordViewModel @Inject constructor(
     fun setCurrentDateTime() {
         val calendar = Calendar.getInstance()
 
-        val hour = calendar.get(Calendar.HOUR)
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         val date = String.format(Locale.getDefault(),
             "%02d-%02d-%02d",
@@ -79,7 +79,6 @@ class AttendanceRecordViewModel @Inject constructor(
             hour,
            minute
         )
-        Log.d("HOUR", "${Calendar.HOUR}  ${Calendar.DAY_OF_WEEK}  ${date} ")
 
 
         var newHour = hour + 9

@@ -26,7 +26,7 @@ interface SchedulerDao {
 
 
     @Query("SELECT * FROM attendance_records " +
-            "WHERE strftime('%Y-%m', date) = :year || '-' || :month;")
+            "WHERE strftime('%Y-%m', date) = :year || '-' || :month order by date DESC;")
 
     fun getAttendanceRecordListByMonth(month: String, year: String): Flow<List<AttendanceRecordDbModel>>
 }
